@@ -1,17 +1,35 @@
+#!/bin/bash
 
-alias cd..='cd ..'
+# cd: overrides cd to change directory but using popd/pushd so there is always a stack
+
 function cd()
 {
+    local dir
     if [ "${1:-}" ]; then
-        dir="$1"
-        while ! [[ -d "$dir" ]] && [[ -e "$dir" ]]; do
-            dir=`dirname $dir`
-        done
-        if [[ "$1" != "$dir" ]]; then
-            echo "Correcting '$1' to '$dir'" 1>&2
+        # dash means previous directory, e.g., pop the directory stack
+        if [ $1 = - ]; then
+            popd > /dev/null
+            return
+        else
+           # make sure the argument is a directory; if not, but the
+           # argument exists (e.g. as a file), use the directory the
+           # argument is in (and repeat if needed).
+           dir="$1"
+           while ! [[ -d "$dir" ]] && [[ -e "$dir" ]]; do
+               dir=`dirname $dir`
+           done
+           # print a warning if the directory we will be changing to
+           # is not the one specified in the argument
+           if [[ "$1" != "$dir" ]]; then
+               echo "Warning (cd): Correcting '$1' to '$dir'" 1>&2
+           fi
         fi
-        command cd "$dir"
     else
-        command cd
+        # absent argument: means home directory
+        dir="$HOME"
+    fi
+    # only change directory if there is a change
+    if [ "$dir" != "$PWD" ]; then
+        command pushd "$dir" > /dev/null
     fi
 }
