@@ -1,0 +1,62 @@
+#!/bin/bash
+
+# gitwhich: Find the .git repository to which the current directory belongs
+# gitsafe: Mark current git repo as a safe directory 
+# gitwsup: Marks repo as safe and show git status including branch, but without untracked files
+# git: wrapper function to make repo be considered safe
+
+function gitwhich()
+{
+    repodir=$(/usr/bin/readlink -f "${1:-.}")
+    gitdir="${repodir}/.git"
+    n=0
+    while (( n < 10 )) && ! [[ -d "${gitdir}" ]]; do
+        let n+=1
+        repodir=$(/usr/bin/readlink -f "${repodir}/..")
+        gitdir="${repodir}/.git"
+    done
+    if [ ! -d "${gitdir}" ]; then
+        echo "Error: No git repository found in '${gitdir}'" 1>&2
+        exit 1
+    else
+        echo "${gitdir}" 
+    fi
+
+}
+
+function gitmksafe()
+{
+    gitdir="$(gitwhich)"
+    if [ -d "${gitdir}" ]; then
+        if ! [ -f "$HOME/.gitconfig" ]; then
+            /usr/bin/touch "$HOME/.gitconfig"
+        fi
+        repodir=$(dirname "$gitdir")
+        if ! /usr/bin/grep -q "$repodir" "$HOME/.gitconfig" 2>/dev/null; then
+            command git config --global --add mksafe.directory "$repodir"
+        fi
+    fi
+}
+
+function gitwsup()
+{
+    gitdir="$(gitwhich)"
+    if [ -d "${gitdir}" ]; then
+        gitmksafe
+        repodir=$(dirname "$gitdir")
+        cd "$repodir"
+        command git branch -v
+        echo -n *\ ;command git log -1|/usr/bin/grep Date
+        command git status|/usr/bin/sed -n 1,/Untracked/p|head -n-1
+        command git remote -v
+        cd -
+    fi
+}
+
+function git()
+{
+    if ! /usr/bin/grep -q "$PWD" "$HOME/.gitconfig" 2>/dev/null; then
+        gitmksafe
+    fi
+    command git "$@"
+}

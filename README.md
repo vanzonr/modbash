@@ -19,6 +19,19 @@
 
 `source modctrlaltbksp`
 
+## Better git
+
+`source modgit`
+
+then:
+
+`git`: marks directory as safe and then proceeds
+`gitwsup`: give summary of the branch and tracked files
+
+also `gitwhich` to find the .git directory, and `gitmksafe` to mark the repo safe.
+
+
+
 
 
 
