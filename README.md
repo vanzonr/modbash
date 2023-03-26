@@ -1,37 +1,42 @@
-# Directory manipulation
+# MODBASH
 
-## Making cd correct a filename into the directory it contains
-## Making cd use popd/pushd
+Modifications of the behaviour of the bash command line, plus a few others
 
+## Directory manipulation
+
+### Making cd correct a filename into the directory it contains
 `source modcorrectcd`
 
-## nd: New directory and change to it
+### Making cd use popd/pushd
+`source modcorrectcd`
+
+### nd: New directory and change to it
 `source modnewdir`
 
-# Command line
-## Making tab-completion correct the case of a filename or directory
+## Command line
 
+### Making tab-completion correct the case of a filename or directory
 `source modtabcase`
 
-# X server settings
+## X server settings
 
-## Make Ctrl-Alt-Backspace terminate the X server
-
+### Make Ctrl-Alt-Backspace terminate the X server
 `source modctrlaltbksp`
 
-## Better git
+## Git
+
+### Better git and additional git-related commands
 
 `source modgit`
 
-then:
+Redefines `git` command to alway mark a directory as safe before
+proceeding with the actual git command
 
-`git`: marks directory as safe and then proceeds
+Furthermore defines:
+
 `gitwsup`: give summary of the branch and tracked files
 
-also `gitwhich` to find the .git directory, and `gitmksafe` to mark the repo safe.
+`gitwhich`: finds the .git directory
 
-
-
-
-
+`gitmksafe` marks the repo safe.
 
