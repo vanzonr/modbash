@@ -33,7 +33,7 @@ function gitmksafe()
         fi
         repodir=$(dirname "$gitdir")
         if ! /usr/bin/grep -q "$repodir" "$HOME/.gitconfig" 2>/dev/null; then
-            command git config --global --add mksafe.directory "$repodir"
+            command git config --global --add safe.directory "$repodir"
         fi
     fi
 }
