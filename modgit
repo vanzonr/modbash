@@ -17,7 +17,7 @@ function gitwhich()
     done
     if [ ! -d "${gitdir}" ]; then
         echo "Error: No git repository found in '${gitdir}'" 1>&2
-        exit 1
+        false
     else
         echo "${gitdir}" 
     fi
