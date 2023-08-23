@@ -16,7 +16,7 @@ function gitwhich()
         gitdir="${repodir}/.git"
     done
     if [ ! -d "${gitdir}" ]; then
-        echo "Error: No git repository found in '${gitdir}'" 1>&2
+        # echo "Error: No git repository found in '${gitdir}'" 1>&2
         false
     else
         echo "${gitdir}" 
@@ -44,12 +44,12 @@ function gitwsup()
     if [ -d "${gitdir}" ]; then
         gitmksafe
         repodir=$(dirname "$gitdir")
-        cd "$repodir"
+        pushd "$repodir" >& /dev/null
         command git branch -v
         echo -n *\ ;command git log -1|/usr/bin/grep Date
         command git status|/usr/bin/sed -n 1,/Untracked/p|head -n-1
         command git remote -v
-        cd -
+        popd >& /dev/null
     fi
 }
 
