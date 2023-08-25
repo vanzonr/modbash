@@ -1,0 +1,98 @@
+#!/bin/bash
+
+# venv: Easier python virtual environment management
+
+# register virtual environment for use with jupyter
+function venv2jup() {
+    true
+}
+
+function venverror() {
+    echo "Error (venv): $@" 1>&2
+    false
+}
+
+# create, list, remove or activate
+function venv() {
+   venvroot="${VENVROOT:-$HOME/.virtualenvs}"
+   if [ "$1" = help -o "$1" = --help -o "$1" = -h -o -z "$1" ]; then
+       cat <<EOF
+venv - easier python virtual environment management
+
+Usage:
+        venv help|--help|-h                  # show his help message
+        venv list                            # list available virtual environments
+        venv activate ENVNAME                # activate a virtual environment
+        venv create ENVNAME [PACKAGE ...]    # create and activate a virtual environment
+        venv deactivate [ENVNAME]            # deactivate a virtual environment
+        venv remove [ENVNAME]                # remove a virtual environment
+
+EOF
+       if [ $# = 0 ]; then
+           venverror "Error (venv): no command given"
+       fi
+   elif [ "$1" = create ]; then
+       if [ "$VIRTUAL_ENV" ]; then
+           venverror "cannot create while another environment is active (${VIRTUAL_ENV##*/})"
+       elif [ -z "$2" ]; then
+           venverror "no environment name given"
+       else
+           mkdir -p "${venvroot}" 
+           virtualenv --system-site-packages "${venvroot}/$2"
+           source "${venvroot}/$2"/bin/activate
+           if [ $# != 2 ]; then
+               shift 2
+               pip install "$@"
+           fi
+           venv2jup
+       fi
+   elif [ "$1" = list ]; then
+       if [ -d "${venvroot}"  ] ; then
+           \ls -1 ${venvroot}
+       fi
+   elif [ "$1" = remove ]; then
+       if [ -z "$2" ]; then
+           venverror "no environment name given"
+       elif ! [ -f "${venvroot}/$2"/bin/activate ]; then
+           venverror "environment '$2' does not exist"
+       else
+           if [[ "$VIRTUAL_ENV" ]] && [[ "$VIRTUAL_ENV" =~ $2 ]]; then
+               echo "deactivate"
+               deactivate
+           fi
+           echo "\rm -rf ${venvroot}/$2"
+           if [ -d $HOME/.local/share/jupyter/kernels/"$name" ]; then
+               echo "\rm -rf -d $HOME/.local/share/jupyter/kernels/$name"
+           fi
+       fi
+   elif [ "$1" = deactivate ]; then
+       if [[ "$2" ]] && [[ "${VIRTUAL_ENV##*/}" != "$2" ]]; then
+           venverror "environment '$2' not activate"
+       elif [[ -z "$VIRTUAL_ENV" ]]; then
+           venverror "No environment active"
+       else
+           echo "deactivate ${VIRTUAL_ENV##*/}"
+           deactivate
+       fi
+   elif [ "$1" = activate ]; then
+       if ! [ -f "${venvroot}/$2"/bin/activate ]; then
+           venverror "No environment '$2' exists; did you mean 'venv create $@'?"
+       else
+           if [[ "$VIRTUAL_ENV" ]]; then
+               current_name="${VIRTUAL_ENV##*/}"
+               if [ "$2" = "$current_name" ]; then
+                   echo "Warning (venv): environment '$2' already active" 1>&2
+               else
+                   echo "Warning (venv): deactivate ${current_name}" 1>&2
+                   deactivate
+               fi
+           fi
+           source  "${venvroot}/$2"/bin/activate
+           if ! [ -d $HOME/.local/share/jupyter/kernels/"$2" ]; then
+               venv2jup
+           fi
+       fi
+   else
+       venverror "Unknown option '$1'"
+   fi
+}
