@@ -61,8 +61,8 @@ EOF
                deactivate
            fi
            echo "\rm -rf ${venvroot}/$2"
-           if [ -d $HOME/.local/share/jupyter/kernels/"$name" ]; then
-               echo "\rm -rf -d $HOME/.local/share/jupyter/kernels/$name"
+           if [ -d "$HOME/.local/share/jupyter/kernels/$2" ]; then
+               echo "\rm -rf -d $HOME/.local/share/jupyter/kernels/$2"
            fi
        fi
    elif [ "$1" = deactivate ]; then
