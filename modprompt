@@ -91,12 +91,12 @@ case ${PSSTYLE} in
     "thumbs")
         export PSERR="👎"
         export PSOK="👍"
-        export PS1='\[\033[0;37m\]$(checkerr $?)\[\033[34;0m\]⊂⊃ \D{%F %T} \033[37;1m$(git branch --show-current 2>/dev/null;true)\033[0m ⊂⊃ \[\033[0m\]\n\[\033[34;1m\]'${USER}'@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[0m\]\n\$ '
+        export PS1='\[\033[0;37m\]$(checkerr $?)\[\033[34;0m\]<'${USER}'> \D{%F %T} \033[36;1m$(echo $(module --terse list 2>&1);true)\033[0m <$(git branch --show-current 2>/dev/null;true)> \[\033[0m\]\n\[\033[34;1m\]\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[0m\]\n\$ '
         ;;
     "checkmarks")
         export PSERR="❌"
         export PSOK="✅"
-        export PS1='\[\033[0;37m\]$(checkerr $?)\[\033[34;0m\]⊂⊃ \D{%F %T} \033[37;1m$(git branch --show-current 2>/dev/null;true)\033[0m ⊂⊃ \[\033[0m\]\n\[\033[34;1m\]'${USER}'@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[0m\]\n\$ '
+        export PS1='\[\033[0;37m\]$(checkerr $?)\[\033[34;0m\]<'${USER}'> \D{%F %T} \033[36;1m$(echo $(module --terse list 2>&1);true)\033[0m <$(git branch --show-current 2>/dev/null;true)> \[\033[0m\]\n\[\033[34;1m\]\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[0m\]\n\$ '
         ;;
     *) false;;
 esac
