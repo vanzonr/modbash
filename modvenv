@@ -56,13 +56,27 @@ EOF
        elif ! [ -f "${venvroot}/$2"/bin/activate ]; then
            venverror "environment '$2' does not exist"
        else
+           echo "About to remove directory '${venvroot}/$2'"
+           if [ -d "$HOME/.local/share/jupyter/kernels/$2" ]; then
+               echo "About to remove '$HOME/.local/share/jupyter/kernels/$2'"
+           fi
+           while true; do
+               read -p 'Proceed (y/N)? ' yesno
+               case ${yesno^^} in 
+	           Y|YES)
+                       break ;;
+	           N|NO|"")
+                       venverror "aborting removal" ; return ;;
+                   *)
+                       continue ;;
+               esac
+           done
            if [[ "$VIRTUAL_ENV" ]] && [[ "$VIRTUAL_ENV" =~ $2 ]]; then
-               echo "deactivate"
                deactivate
            fi
-           echo "\rm -rf ${venvroot}/$2"
+           \rm -rf "${venvroot}/$2"
            if [ -d "$HOME/.local/share/jupyter/kernels/$2" ]; then
-               echo "\rm -rf -d $HOME/.local/share/jupyter/kernels/$2"
+               \rm -rf -d "$HOME/.local/share/jupyter/kernels/$2"
            fi
        fi
    elif [ "$1" = deactivate ]; then
