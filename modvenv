@@ -3,8 +3,49 @@
 # venv: Easier python virtual environment management
 
 # register virtual environment for use with jupyter
+#
+# 1. Deduces the virtual environment name from the VIRTUAL_ENV 
+#    environment variable.
+#
+# 2. Install ipykernel in the virtual environment, which allows 
+#    it to operate as a kernel.
+#
+# 3. Register the virtual environment as a kernel in 
+#    ~/.local/share/jupyter/kernels/<NAME>/kernel.json
+#
+# 4. Adds environment variables to that kernel.json file to 
+#    reproduce the current environment.
+#
 function venv2jup() {
-    true
+    venvname=${VIRTUAL_ENV##*/}
+    if [ "$venvname" ]; then
+        pip install ipykernel > /dev/null
+        jsonfile="${HOME}/.local/share/jupyter/kernels/${venvname,,}/kernel.json"
+        if ! [ -f "${jsonfile}" ]; then
+            python -m ipykernel install --name "$venvname" --user
+            if [ -f "${jsonfile}" ]; then
+                exportvars=(PATH LD_LIBRARY_PATH LIBRARY_PATH
+                            MANPATH CPATH PKG_CONFIG_PATH
+                            PYTHONPATH EBPYTHONPREFIXES JAVA_HOME
+                            CMAKE_PREFIX_PATH PKG_CONFIG_PATH)
+                jsonfile2=$(mktemp)
+                head -n -2 "${jsonfile}"     > $jsonfile2
+                echo " },"                  >> $jsonfile2
+                echo ' "env": {'            >> $jsonfile2
+                for var in ${exportvars[@]}; do
+                    echo "  \"$var\": \"${!var}\", "
+                done                        >> $jsonfile2
+                echo '  "VENV2JUP": "true"' >> $jsonfile2
+                tail -n 2 "${jsonfile}"     >> $jsonfile2
+                cat $jsonfile2 > "${jsonfile}"
+                \rm -f $jsonfile2
+            else
+                false
+            fi
+        fi
+    else
+        false
+    fi
 }
 
 function venverror() {
