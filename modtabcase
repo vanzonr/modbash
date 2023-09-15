@@ -1,5 +1,4 @@
 #!/bin/bash
-if ! grep -qF "set completion-ignore-case On" $HOME/.inputrc 2>/dev/null
-then
-    echo "set completion-ignore-case On" >> $HOME/.inputrc
+if ! grep --quiet --fixed-strings "set completion-ignore-case On" "${HOME}/.inputrc" 2>/dev/null ; then
+    echo "set completion-ignore-case On" >> "${HOME}/.inputrc"
 fi
