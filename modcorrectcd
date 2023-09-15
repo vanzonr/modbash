@@ -5,18 +5,18 @@
 function cd()
 {
     local dir
-    if [ "${1:-}" ]; then
+    if [[ "${1:-}" ]]; then
         # dash means previous directory, e.g., pop the directory stack
-        if [ $1 = - ]; then
-            popd > /dev/null
+        if [[ "$1" = - ]]; then
+            popd > /dev/null || return
             return
         else
            # make sure the argument is a directory; if not, but the
            # argument exists (e.g. as a file), use the directory the
            # argument is in (and repeat if needed).
            dir="$1"
-           while ! [[ -d "$dir" ]] && [[ -e "$dir" ]]; do
-               dir=`dirname $dir`
+           while [[ ! -d "$dir" && -e "$dir" ]]; do
+               dir=$(dirname "$dir")
            done
            # print a warning if the directory we will be changing to
            # is not the one specified in the argument
@@ -29,7 +29,7 @@ function cd()
         dir="$HOME"
     fi
     # only change directory if there is a change
-    if [ "$dir" != "$PWD" ]; then
-        command pushd "$dir" > /dev/null
+    if [[ "$dir" != "$PWD" ]]; then
+        command pushd "$dir" > /dev/null || return 1
     fi
 }
