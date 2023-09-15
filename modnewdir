@@ -6,11 +6,11 @@
 
 function nd()
 {
-    if [ "${1:-}" ]; then
-        if ! [ -e "$1" ]; then
-            mkdir -p $1
+    if [[ "${1:-}" ]]; then
+        if [[ ! -e "$1" ]]; then
+            mkdir --parent "$1" || return 1
         fi
-        cd "$1"
+        cd "$1" || return 1
     fi
 }
 #
