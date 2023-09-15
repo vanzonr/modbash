@@ -10,14 +10,14 @@ function gitwhich()
     repodir=$(/usr/bin/readlink -f "${1:-.}")
     gitdir="${repodir}/.git"
     n=0
-    while (( n < 10 )) && ! [[ -d "${gitdir}" ]]; do
-        let n+=1
+    while (( n < 10 )) && [[ ! -d "${gitdir}" ]]; do
+        (( n+=1 ))
         repodir=$(/usr/bin/readlink -f "${repodir}/..")
         gitdir="${repodir}/.git"
     done
-    if [ ! -d "${gitdir}" ]; then
+    if [[ ! -d "${gitdir}" ]]; then
         # echo "Error: No git repository found in '${gitdir}'" 1>&2
-        false
+        return 1
     else
         echo "${gitdir}" 
     fi
@@ -26,37 +26,39 @@ function gitwhich()
 
 function gitmksafe()
 {
-    gitdir="$(gitwhich)"
-    if [ -d "${gitdir}" ]; then
-        if ! [ -f "$HOME/.gitconfig" ]; then
-            /usr/bin/touch "$HOME/.gitconfig"
+    gitdir=$(gitwhich "${1:-.}")
+    if [[ -d "${gitdir}" ]]; then
+        if [[ ! -f "${HOME}/.gitconfig" ]]; then
+            /usr/bin/touch "${HOME}/.gitconfig"
         fi
-        repodir=$(dirname "$gitdir")
-        if ! /usr/bin/grep -q "$repodir" "$HOME/.gitconfig" 2>/dev/null; then
-            command git config --global --add safe.directory "$repodir"
+        repodir=$(dirname "${gitdir}")
+        if ! /usr/bin/grep -q "${repodir}" "${HOME}/.gitconfig" 2>/dev/null; then
+            command git config --global --add safe.directory "${repodir}"
         fi
     fi
 }
 
 function gitwsup()
 {
-    gitdir="$(gitwhich)"
-    if [ -d "${gitdir}" ]; then
-        gitmksafe
-        repodir=$(dirname "$gitdir")
-        pushd "$repodir" >& /dev/null
+    gitdir=$(gitwhich "${1:-.}")
+    if [[ -d "${gitdir}" ]]; then
+        gitmksafe "${gitdir}" || return 1
+        repodir=$(dirname "${gitdir}")
+        pushd "${repodir}" >& /dev/null || return 1
+        echo '* Repo: '"${repodir}"
         command git branch -v
-        echo -n *\ ;command git log -1|/usr/bin/grep Date
+        echo -n '* '
+        command git log -1|/usr/bin/grep Date
         command git status|/usr/bin/sed -n 1,/Untracked/p|head -n-1
         command git remote -v
-        popd >& /dev/null
+        popd >& /dev/null || return 1
     fi
 }
 
 function git()
 {
-    if ! /usr/bin/grep -q "$PWD" "$HOME/.gitconfig" 2>/dev/null; then
-        gitmksafe
+    if ! /usr/bin/grep -q "${PWD}" "${HOME}/.gitconfig" 2>/dev/null; then
+        gitmksafe .
     fi
     command git "$@"
 }
