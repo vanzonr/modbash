@@ -2,6 +2,8 @@
 
 # venv: Easier python virtual environment management
 
+# shellcheck disable=SC1090
+
 # register virtual environment for use with jupyter
 #
 # 1. Deduces the virtual environment name from the VIRTUAL_ENV 
@@ -18,27 +20,29 @@
 #
 function venv2jup() {
     venvname=${VIRTUAL_ENV##*/}
-    if [ "$venvname" ]; then
+    if [[ "${venvname:-}" ]]; then
         pip install ipykernel > /dev/null
         jsonfile="${HOME}/.local/share/jupyter/kernels/${venvname,,}/kernel.json"
-        if ! [ -f "${jsonfile}" ]; then
-            python -m ipykernel install --name "$venvname" --user
-            if [ -f "${jsonfile}" ]; then
+        if [[ ! -f "${jsonfile}" ]]; then
+            python -m ipykernel install --name "${venvname}" --user
+            if [[ -f "${jsonfile}" ]]; then
                 exportvars=(PATH LD_LIBRARY_PATH LIBRARY_PATH
                             MANPATH CPATH PKG_CONFIG_PATH
                             PYTHONPATH EBPYTHONPREFIXES JAVA_HOME
                             CMAKE_PREFIX_PATH PKG_CONFIG_PATH)
                 jsonfile2=$(mktemp)
-                head -n -2 "${jsonfile}"     > $jsonfile2
-                echo " },"                  >> $jsonfile2
-                echo ' "env": {'            >> $jsonfile2
-                for var in ${exportvars[@]}; do
-                    echo "  \"$var\": \"${!var}\", "
-                done                        >> $jsonfile2
-                echo '  "VENV2JUP": "true"' >> $jsonfile2
-                tail -n 2 "${jsonfile}"     >> $jsonfile2
-                cat $jsonfile2 > "${jsonfile}"
-                \rm -f $jsonfile2
+                {
+                    head --lines -2 "${jsonfile}"
+                    echo " },"
+                    echo ' "env": {'
+                    for var in "${exportvars[@]}"; do
+                        echo "  \"$var\": \"${!var}\", "
+                    done
+                    echo '  "VENV2JUP": "true"'
+                    tail -n 2 "${jsonfile}"
+                } > "${jsonfile2}"
+                cat "${jsonfile2}" > "${jsonfile}"
+                \rm --force "${jsonfile2}"
             else
                 false
             fi
@@ -48,15 +52,15 @@ function venv2jup() {
     fi
 }
 
-function venverror() {
-    echo "Error (venv): $@" 1>&2
+function _venverror() {
+    echo "Error (venv): $*" 1>&2
     false
 }
 
 # create, list, remove or activate
 function venv() {
-   venvroot="${VENVROOT:-$HOME/.virtualenvs}"
-   if [ "$1" = help -o "$1" = --help -o "$1" = -h -o -z "$1" ]; then
+   venvroot="${VENVROOT:-${HOME}/.virtualenvs}"
+   if [[ "$1" = help || "$1" = --help || "$1" = -h  || -z "$1" ]]; then
        cat <<EOF
 venv - easier python virtual environment management
 
@@ -69,73 +73,73 @@ Usage:
         venv remove [ENVNAME]                # remove a virtual environment
 
 EOF
-       if [ $# = 0 ]; then
-           venverror "Error (venv): no command given"
+       if [[ $# = 0 ]]; then
+           _venverror "Error (venv): no command given"
        fi
-   elif [ "$1" = create ]; then
-       if [ "$VIRTUAL_ENV" ]; then
-           venverror "cannot create while another environment is active (${VIRTUAL_ENV##*/})"
-       elif [ -z "$2" ]; then
-           venverror "no environment name given"
+   elif [[ "$1" = create ]]; then
+       if [[ "${VIRTUAL_ENV:-}" ]]; then
+           _venverror "cannot create while another environment is active (${VIRTUAL_ENV##*/})"
+       elif [[ -z "${2:-}" ]]; then
+           _venverror "no environment name given"
        else
-           mkdir -p "${venvroot}" 
+           mkdir --parents "${venvroot}"
            virtualenv --system-site-packages "${venvroot}/$2"
            source "${venvroot}/$2"/bin/activate
-           if [ $# != 2 ]; then
+           if [[ $# != 2 ]]; then
                shift 2
                pip install "$@"
            fi
            venv2jup
        fi
-   elif [ "$1" = list ]; then
-       if [ -d "${venvroot}"  ] ; then
-           \ls -1 ${venvroot}
+   elif [[ "$1" = list ]]; then
+       if [[ -d "${venvroot}"  ]] ; then
+           \ls -1 "${venvroot}"
        fi
-   elif [ "$1" = remove ]; then
-       if [ -z "$2" ]; then
-           venverror "no environment name given"
-       elif ! [ -f "${venvroot}/$2"/bin/activate ]; then
-           venverror "environment '$2' does not exist"
+   elif [[ "$1" = remove ]]; then
+       if [[ -z "$2" ]]; then
+           _venverror "no environment name given"
+       elif [[ ! -f "${venvroot}/$2/bin/activate" ]]; then
+           _venverror "environment '$2' does not exist"
        else
            echo "About to remove directory '${venvroot}/$2'"
-           if [ -d "$HOME/.local/share/jupyter/kernels/$2" ]; then
-               echo "About to remove '$HOME/.local/share/jupyter/kernels/$2'"
+           if [[ -d "${HOME}/.local/share/jupyter/kernels/$2" ]]; then
+               echo "About to remove '${HOME}/.local/share/jupyter/kernels/$2'"
            fi
            while true; do
-               read -p 'Proceed (y/N)? ' yesno
-               case ${yesno^^} in 
+               read -rp 'Proceed (y/N)? ' yesno
+               case "${yesno^^}" in
 	           Y|YES)
                        break ;;
 	           N|NO|"")
-                       venverror "aborting removal" ; return ;;
+                       _venverror "aborting removal" ; return ;;
                    *)
                        continue ;;
                esac
            done
-           if [[ "$VIRTUAL_ENV" ]] && [[ "$VIRTUAL_ENV" =~ $2 ]]; then
+           if [[ "${VIRTUAL_ENV:-}" && "${VIRTUAL_ENV}" =~ $2 ]]; then
                deactivate
            fi
-           \rm -rf "${venvroot}/$2"
-           if [ -d "$HOME/.local/share/jupyter/kernels/$2" ]; then
-               \rm -rf -d "$HOME/.local/share/jupyter/kernels/$2"
+           \rm --recursive --force "${venvroot:?}/$2"
+           if [[ -d "${HOME}/.local/share/jupyter/kernels/$2" ]]; then
+               \rm -rf -d "${HOME}/.local/share/jupyter/kernels/$2"
            fi
        fi
-   elif [ "$1" = deactivate ]; then
-       if [[ "$2" ]] && [[ "${VIRTUAL_ENV##*/}" != "$2" ]]; then
-           venverror "environment '$2' not activate"
+   elif [[ "$1" = deactivate ]]; then
+       if [[ "${2:-}" && "${VIRTUAL_ENV##*/}" != "$2" ]]; then
+           _venverror "environment '$2' not activate"
        elif [[ -z "$VIRTUAL_ENV" ]]; then
-           venverror "No environment active"
+           _venverror "No environment active"
        else
            echo "deactivate ${VIRTUAL_ENV##*/}"
            deactivate
        fi
-   elif [ "$1" = activate ]; then
-       if ! [ -f "${venvroot}/$2"/bin/activate ]; then
-           venverror "No environment '$2' exists; did you mean 'venv create $@'?"
+   elif [[ "$1" = activate ]]; then
+       if [[ ! -f "${venvroot}/$2/bin/activate" ]]; then
+           _venverror "No environment '$2' exists; did you mean 'venv create $*'?"
        else
            if [[ "$VIRTUAL_ENV" ]]; then
                current_name="${VIRTUAL_ENV##*/}"
-               if [ "$2" = "$current_name" ]; then
+               if [[ "$2" = "$current_name" ]]; then
                    echo "Warning (venv): environment '$2' already active" 1>&2
                else
                    echo "Warning (venv): deactivate ${current_name}" 1>&2
@@ -143,11 +147,11 @@ EOF
                fi
            fi
            source  "${venvroot}/$2"/bin/activate
-           if ! [ -d $HOME/.local/share/jupyter/kernels/"$2" ]; then
+           if [[ ! -d "${HOME}/.local/share/jupyter/kernels/$2" ]]; then
                venv2jup
            fi
        fi
    else
-       venverror "Unknown option '$1'"
+       _venverror "Unknown option '$1'"
    fi
 }
