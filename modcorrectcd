@@ -15,21 +15,21 @@ function cd()
            # argument exists (e.g. as a file), use the directory the
            # argument is in (and repeat if needed).
            dir="$1"
-           while [[ ! -d "$dir" && -e "$dir" ]]; do
-               dir=$(dirname "$dir")
+           while [[ ! -d "${dir}" && -e "${dir}" ]]; do
+               dir=$(dirname "${dir}")
            done
            # print a warning if the directory we will be changing to
            # is not the one specified in the argument
-           if [[ "$1" != "$dir" ]]; then
-               echo "Warning (cd): Correcting '$1' to '$dir'" 1>&2
+           if [[ "$1" != "${dir}" ]]; then
+               echo "Warning (cd): Correcting '$1' to '${dir}'" 1>&2
            fi
         fi
     else
         # absent argument: means home directory
-        dir="$HOME"
+        dir="${HOME}"
     fi
     # only change directory if there is a change
-    if [[ "$dir" != "$PWD" ]]; then
-        command pushd "$dir" > /dev/null || return 1
+    if [[ "${dir}" != "${PWD}" ]]; then
+        command pushd "${dir}" > /dev/null || return 1
     fi
 }
