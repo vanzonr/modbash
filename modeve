@@ -152,6 +152,10 @@ EOF
            fi
        fi
    else
-       _eveerror "Unknown option '$1'"
+       if [[ -f "${everoot}/$1/bin/activate" ]]; then
+           eve activate "$1"
+       else
+           _eveerror "Unknown option or environment '$1'"
+       fi
    fi
 }
