@@ -65,13 +65,13 @@ function eve() {
 eve - easier python virtual environment management
 
 Usage:
-        eve help|--help|-h                  # show his help message
+        eve help | --help | -h              # show his help message
         eve list                            # list available virtual environments
-        eve activate ENVNAME                # activate a virtual environment
+        eve [activate] ENVNAME              # activate a virtual environment
         eve create ENVNAME [PACKAGE ...]    # create and activate a virtual environment
         eve deactivate [ENVNAME]            # deactivate a virtual environment
         eve remove [ENVNAME]                # remove a virtual environment
-
+        eve module save                     # preserve currently loaded modules in environment
 EOF
        if [[ $# = 0 ]]; then
            _eveerror "Error (eve): no command given"
@@ -84,6 +84,8 @@ EOF
        else
            mkdir --parents "${everoot}"
            virtualenv --system-site-packages "${everoot}/$2"
+           module save "eve_$2"
+           module save "eve_bash_$$" >& /dev/null
            source "${everoot}/$2"/bin/activate
            if [[ $# != 2 ]]; then
                shift 2
@@ -117,12 +119,32 @@ EOF
                esac
            done
            if [[ "${VIRTUAL_ENV:-}" && "${VIRTUAL_ENV}" =~ $2 ]]; then
-               deactivate
+               eve deactivate
            fi
            \rm --recursive --force "${everoot:?}/$2"
            if [[ -d "${HOME}/.local/share/jupyter/kernels/$2" ]]; then
                \rm -rf -d "${HOME}/.local/share/jupyter/kernels/$2"
            fi
+           if module describe "eve_$2" >& /dev/null; then
+               module disable "eve_$2" 2>/dev/null
+           fi
+       fi
+   elif [[ "$1" = module ]]; then
+       current_name="${VIRTUAL_ENV##*/}"
+       if [[ -z "${2:-}" ]]; then
+           echo "Module tracking by eve is off"
+       elif [[ "${2:-}" = on ]]; then
+           echo "Module tracking unsupported"
+       elif [[ "${2:-}" = off ]]; then
+           echo "Module tracking unsupported"
+       elif [[ "${2:-}" = save ]]; then
+           module save "eve_${current_name}"
+           jsonfile="${HOME}/.local/share/jupyter/kernels/${evename,,}/kernel.json"
+           rm -f "$jsonfile"
+           eve2jup
+       else
+           shift
+           _eveerror "Unknown option '${@}' to 'module' subcommand"
        fi
    elif [[ "$1" = deactivate ]]; then
        if [[ "${2:-}" && "${VIRTUAL_ENV##*/}" != "$2" ]]; then
@@ -132,6 +154,8 @@ EOF
        else
            echo "deactivate ${VIRTUAL_ENV##*/}"
            deactivate
+           module restore "eve_bash_$$" >& /dev/null
+           module disable "eve_bash_$$" >& /dev/null
        fi
    elif [[ "$1" = activate ]]; then
        if [[ ! -f "${everoot}/$2/bin/activate" ]]; then
@@ -143,8 +167,12 @@ EOF
                    echo "Warning (eve): environment '$2' already active" 1>&2
                else
                    echo "Warning (eve): deactivate ${current_name}" 1>&2
-                   deactivate
+                   eve deactivate
                fi
+           fi
+           module save "eve_bash_$$" >& /dev/null
+           if module describe "eve_$2" >& /dev/null; then
+               module restore "eve_$2" 2>/dev/null
            fi
            source  "${everoot}/$2"/bin/activate
            if [[ ! -d "${HOME}/.local/share/jupyter/kernels/$2" ]]; then
