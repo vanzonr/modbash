@@ -70,6 +70,7 @@ Usage:
         eve [activate] ENVNAME              # activate a virtual environment
         eve create ENVNAME [PACKAGE ...]    # create and activate a virtual environment
         eve deactivate [ENVNAME]            # deactivate a virtual environment
+        eve describe [ENVNAME]              # describe a virtual environment
         eve remove [ENVNAME]                # remove a virtual environment
         eve module save                     # preserve currently loaded modules in environment
 EOF
@@ -156,6 +157,49 @@ EOF
            deactivate
            module restore "eve_bash_$$" >& /dev/null
            module disable "eve_bash_$$" >& /dev/null
+       fi
+   elif [[ "$1" = describe ]]; then
+       if [ -z "${2:-}" ]; then
+           if [ "${VIRTUAL_ENV##*/}" ]; then
+               eve describe "${VIRTUAL_ENV##*/}"
+           else
+               _eveerror "No environment active"
+           fi
+       else
+           if [ -d ${everoot}/$2 ]; then
+               echo
+               echo "## About $2 ##"
+               ${everoot}/$2/bin/python --version | sed 's+Python +Python version: +'
+               echo -ne "Location:\t"
+               echo "${everoot}/$2"
+               echo -ne "Created:\t"
+               stat --format=%y "${everoot}/$2/bin/python" | cut -d\  -f1
+               echo -ne "Last used:\t"
+               stat --format=%x "${everoot}/$2/bin/python" | cut -d\  -f1
+               echo -ne "Linked to:\t"
+               readlink -f ${everoot}/$2/bin/python
+               echo -ne "Creator:\t"
+               stat --format=%U "${everoot}/$2/bin/python"
+               if [ -f "${HOME}/.local/share/jupyter/kernels/$2/kernel.json" ]; then
+                   echo -e "Jupyter kernel:\tyes"
+               else
+                   echo -e "Jupyter kernel:\tno"
+               fi
+               echo
+               echo  "## Environment Modules ##" 
+               if [ -f "${HOME}/.lmod.d/eve_$2" ]; then
+                   module --terse describe eve_$2 2>&1
+               else
+                   echo "<unknown>"
+               fi
+               echo
+               echo "## Python Packages ##"
+               ${everoot}/$2/bin/pip list --local --not-required --format=freeze
+               echo
+               echo "## System Python Packages ##"
+               comm -13 <(${everoot}/$2/bin/pip list --format=freeze --not-required|sort) <(${everoot}/$2/bin/pip list --format=freeze|sort)
+               echo
+           fi
        fi
    elif [[ "$1" = activate ]]; then
        if [[ ! -f "${everoot}/$2/bin/activate" ]]; then
