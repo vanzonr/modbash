@@ -2,11 +2,11 @@
 
 # Create fancy prompt
 
-
 function exit2msg_error_msg() {
     # Print error message 
     #   $1 = exit code, assumed to follow sysexit.h convention
     local errorno="$1"
+    echo -n "${errorno}: "
     case "${errorno}" in
         0) echo "Success"  ;;
         1) echo "Miscellaneous/Syntax error"  ;;
@@ -77,24 +77,41 @@ function exit2msg_error_msg() {
 }
 
 function checkerr() {
-    command=$(HISTTIMEFORMAT='' history 1 | sed 's/.*=.*//g' | awk '{print $2}')
     if [ "$1" != "0" ]; then
+        # first the actual command that failed
+        local commandline
+        commandline="$(HISTTIMEFORMAT='/' history 1 | cut -d/ -f2-)"
+        # remove history number and time
+        commandline=${commandline#*/}
+        # transform into a list
+        commandline=("$commandline")
+        # find the first non-assignment in the list, that's the
+        # command (caveat: does not work if there are spaces in the
+        # command or preceeing assignments)
+        local command
+        for command in "${commandline[@]}"; do
+            [[ $command == [A-Za-z]*=* ]] || break
+        done
+        local message
         message=$(exit2msg_error_msg "$1")
         echo -e "\033[31;1m${PSERR}  '$command': Exit code ${message} \033[0m\012\015"
         echo ""
     else
-        echo -e "\033[32;1m${PSOK}\033[0m\012\015"
+        echo -e "\033[32;1m${PSOK}$2\033[0m\012\015"
     fi   
 }
 
 function gitstatline() {
-    if ! [[ $PWD =~ /remote/ ]]; then
-        echo -n $(git branch --show-current 2>/dev/null;true)
-        printf '%.*s' $(git ls-files -m 2>/dev/null | wc -l) +
+    # prompts should be quick, so no PATH searches for git.
+    # If it isn't in /usr/bin, forget it.
+    if ! [[ $PWD =~ /remote/ && -f /usr/bin/git ]]; then
+        echo -n "$(/usr/bin/git branch --show-current 2>/dev/null;true)"
+        printf '%.*s' "$(/usr/bin/git ls-files -m 2>/dev/null | wc -l)" +
     else
         echo '?'
     fi
 }
+
 PSSTYLE=${1:-checkmarks}
 case "${PSSTYLE}" in
     "thumbs")
