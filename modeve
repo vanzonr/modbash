@@ -19,7 +19,7 @@
 #    reproduce the current environment.
 #
 function eve2jup() {
-    evename=${VIRTUAL_ENV##*/}
+    evename="${VIRTUAL_ENV##*/}"
     if [[ "${evename:-}" ]]; then
         pip install ipykernel > /dev/null
         jsonfile="${HOME}/.local/share/jupyter/kernels/${evename,,}/kernel.json"
@@ -36,7 +36,7 @@ function eve2jup() {
                     echo " },"
                     echo ' "env": {'
                     for var in "${exportvars[@]}"; do
-                        echo "  \"$var\": \"${!var}\", "
+                        echo "  \"${var}\": \"${!var}\", "
                     done
                     echo '  "EVE2JUP": "true"'
                     tail -n 2 "${jsonfile}"
@@ -141,16 +141,16 @@ EOF
        elif [[ "${2:-}" = save ]]; then
            module save "eve_${current_name}"
            jsonfile="${HOME}/.local/share/jupyter/kernels/${evename,,}/kernel.json"
-           rm -f "$jsonfile"
+           rm -f "${jsonfile}"
            eve2jup
        else
            shift
-           _eveerror "Unknown option '${@}' to 'module' subcommand"
+           _eveerror "Unknown option '$*' to 'module' subcommand"
        fi
    elif [[ "$1" = deactivate ]]; then
        if [[ "${2:-}" && "${VIRTUAL_ENV##*/}" != "$2" ]]; then
            _eveerror "environment '$2' not activate"
-       elif [[ -z "$VIRTUAL_ENV" ]]; then
+       elif [[ -z "${VIRTUAL_ENV}" ]]; then
            _eveerror "No environment active"
        else
            echo "deactivate ${VIRTUAL_ENV##*/}"
@@ -166,10 +166,10 @@ EOF
                _eveerror "No environment active"
            fi
        else
-           if [ -d ${everoot}/$2 ]; then
+           if [ -d "${everoot}/$2" ]; then
                echo
                echo "## About $2 ##"
-               ${everoot}/$2/bin/python --version | sed 's+Python +Python version: +'
+               "${everoot}/$2"/bin/python --version | sed 's+Python +Python version: +'
                echo -ne "Location:\t"
                echo "${everoot}/$2"
                echo -ne "Created:\t"
@@ -177,7 +177,7 @@ EOF
                echo -ne "Last used:\t"
                stat --format=%x "${everoot}/$2/bin/python" | cut -d\  -f1
                echo -ne "Linked to:\t"
-               readlink -f ${everoot}/$2/bin/python
+               readlink -f "${everoot}/$2"/bin/python
                echo -ne "Creator:\t"
                stat --format=%U "${everoot}/$2/bin/python"
                if [ -f "${HOME}/.local/share/jupyter/kernels/$2/kernel.json" ]; then
@@ -188,16 +188,16 @@ EOF
                echo
                echo  "## Environment Modules ##" 
                if [ -f "${HOME}/.lmod.d/eve_$2" ]; then
-                   module --terse describe eve_$2 2>&1
+                   module --terse describe "eve_$2" 2>&1
                else
                    echo "<unknown>"
                fi
                echo
                echo "## Python Packages ##"
-               ${everoot}/$2/bin/pip list --local --not-required --format=freeze
+               "${everoot}/$2"/bin/pip list --local --not-required --format=freeze
                echo
                echo "## System Python Packages ##"
-               comm -13 <(${everoot}/$2/bin/pip list --format=freeze --not-required|sort) <(${everoot}/$2/bin/pip list --format=freeze|sort)
+               comm -13 <("${everoot}/$2"/bin/pip list --format=freeze --not-required|sort) <("${everoot}/$2"/bin/pip list --format=freeze|sort)
                echo
            fi
        fi
@@ -205,9 +205,9 @@ EOF
        if [[ ! -f "${everoot}/$2/bin/activate" ]]; then
            _eveerror "No environment '$2' exists; did you mean 'eve create $*'?"
        else
-           if [[ "$VIRTUAL_ENV" ]]; then
+           if [[ "${VIRTUAL_ENV}" ]]; then
                current_name="${VIRTUAL_ENV##*/}"
-               if [[ "$2" = "$current_name" ]]; then
+               if [[ "$2" = "${current_name}" ]]; then
                    echo "Warning (eve): environment '$2' already active" 1>&2
                else
                    echo "Warning (eve): deactivate ${current_name}" 1>&2
