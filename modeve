@@ -220,7 +220,7 @@ EOF
            fi
            source  "${everoot}/$2"/bin/activate
            if [[ ! -d "${HOME}/.local/share/jupyter/kernels/$2" ]]; then
-               eve2jup
+               eve2jup || mkdir -p "${HOME}/.local/share/jupyter/kernels/$2"
            fi
        fi
    else
