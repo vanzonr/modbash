@@ -4,11 +4,17 @@
 
 # Changes directory, but creates it if it does not exist yet.
 
+# read configuration and check them
+mydir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+[ -f $mydir/modbash.conf ] || return 1
+source $mydir/modbash.conf
+[ -v modbash[mkdir] ] || return 1
+
 function nd()
 {
     if [[ "${1:-}" ]]; then
         if [[ ! -e "$1" ]]; then
-            mkdir --parent "$1" || return 1
+            ${modbash[mkdir]} --parent "$1" || return 1
         fi
         cd "$1" || return 1
     fi

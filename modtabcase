@@ -1,4 +1,10 @@
 #!/bin/bash
-if ! grep --quiet --fixed-strings "set completion-ignore-case On" "${HOME}/.inputrc" 2>/dev/null ; then
+# read configuration and check them
+mydir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+[ -f $mydir/modbash.conf ] || return 1
+source $mydir/modbash.conf
+[ -v modbash[grep] ] || return 1
+
+if ! ${modbash[grep]} --quiet --fixed-strings "set completion-ignore-case On" "${HOME}/.inputrc" 2>/dev/null ; then
     echo "set completion-ignore-case On" >> "${HOME}/.inputrc"
 fi
