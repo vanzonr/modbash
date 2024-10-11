@@ -8,7 +8,7 @@
 mydir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 [ -f $mydir/modbash.conf ] || return 1
 source $mydir/modbash.conf
-[ -v modbash[mkdir] ] || return 1
+[ "${modbash[mkdir]+x}" ] || return 1
 
 function nd()
 {

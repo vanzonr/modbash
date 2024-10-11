@@ -4,9 +4,9 @@
 mydir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 [ -f $mydir/modbash.conf ] || return 1
 source $mydir/modbash.conf
-[ -v modbash[cut] ] || return 1
-[ -v modbash[git] ] || return 1
-[ -v modbash[sed] ] || return 1
+[ "${modbash[cut]+x}" ] || return 1
+[ "${modbash[git]+x}" ] || return 1
+[ "${modbash[sed]+x}" ] || return 1
 
 # Create fancy prompt
 
