@@ -68,7 +68,7 @@ Usage:
         eve help | --help | -h              # show his help message
         eve list                            # list available virtual environments
         eve [activate] ENVNAME              # activate a virtual environment
-        eve create ENVNAME [PACKAGE ...]    # create and activate a virtual environment
+        eve create ENVNAME [PACKAGE ...]    # create and activate a virtual environment, inheriting currently loaded modules
         eve deactivate [ENVNAME]            # deactivate a virtual environment
         eve describe [ENVNAME]              # describe a virtual environment
         eve remove [ENVNAME]                # remove a virtual environment
@@ -85,8 +85,8 @@ EOF
        else
            mkdir --parents "${everoot}"
            virtualenv --system-site-packages "${everoot}/$2"
-           module save "eve_$2"
-           module save "eve_bash_$$" >& /dev/null
+           module --force save "eve_$2"
+           module --force save "eve_bash_$$" >& /dev/null
            source "${everoot}/$2"/bin/activate
            if [[ $# != 2 ]]; then
                shift 2
@@ -139,7 +139,7 @@ EOF
        elif [[ "${2:-}" = off ]]; then
            echo "Module tracking unsupported"
        elif [[ "${2:-}" = save ]]; then
-           module save "eve_${current_name}"
+           module --force save "eve_${current_name}"
            jsonfile="${HOME}/.local/share/jupyter/kernels/${evename,,}/kernel.json"
            rm -f "${jsonfile}"
            eve2jup
@@ -214,7 +214,7 @@ EOF
                    eve deactivate
                fi
            fi
-           module save "eve_bash_$$" >& /dev/null
+           module --force save "eve_bash_$$" >& /dev/null
            if module describe "eve_$2" >& /dev/null; then
                module restore "eve_$2" 2>/dev/null
            fi
