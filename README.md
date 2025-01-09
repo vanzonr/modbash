@@ -15,6 +15,9 @@ Modifications of the behaviour of the bash command line, plus a few others
 ### Making tab-completion correct the case of a filename or directory
 `source modtabcase`
 
+### bash prompt with date, time, loaded environment modules and git branch
+`source modprompt`
+
 ## X server settings
 
 ### Make Ctrl-Alt-Backspace terminate the X server (X11 only)
