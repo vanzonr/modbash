@@ -4,10 +4,7 @@ Modifications of the behaviour of the bash command line, plus a few others
 
 ## Directory manipulation
 
-### Making cd correct a filename into the directory it contains
-`source modcorrectcd`
-
-### Making cd use popd/pushd
+### Making cd correct a filename into the directory it contains and use pop/pushd
 `source modcorrectcd`
 
 ### nd: New directory and change to it
@@ -20,7 +17,7 @@ Modifications of the behaviour of the bash command line, plus a few others
 
 ## X server settings
 
-### Make Ctrl-Alt-Backspace terminate the X server
+### Make Ctrl-Alt-Backspace terminate the X server (X11 only)
 `source modctrlaltbksp`
 
 ## Git
@@ -39,26 +36,4 @@ Furthermore defines:
 `gitwhich`: finds the .git directory
 
 `gitmksafe` marks the repo safe.
-
-## Python virtual environments
-
-### Better virtual environment management
-
-`source modvenv`
-
-Defines a `venv` command.
-
-Usage:
-
- `venv help|--help|-h`                  # show his help message
-
- `venv list`                            # list available virtual environments
-
- `venv activate ENVNAME`                # activate a virtual environment
-
- `venv create ENVNAME [PACKAGE ...]`    # create and activate a virtual environment
-
- `venv deactivate [ENVNAME]`            # deactivate a virtual environment
- 
- `venv remove [ENVNAME]`                # remove a virtual environment
 

@@ -144,7 +144,7 @@ if [[ "${PSERR:-}" && "${PSOK:-}" ]]; then
         f*) PSCOL="00;30;47";;
         m*) PSCOL="32" ;;
         n*) PSCOL="34" ;;
-        p*) PSCOL="00;30;44";;
+        p*) PSCOL="00;30;46";;
         r*) PSCOL="31" ;;
         s*) PSCOL="35" ;;
         *)  PSCOL="37" ;;
