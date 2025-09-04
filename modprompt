@@ -120,7 +120,7 @@ function gitstatline() {
     fi
 }
 
-PSSTYLE=${1:-checkmarks}
+PSSTYLE=${1:-ballotbox}
 case "${PSSTYLE}" in
     "thumbs")
         export PSERR="👎"
@@ -129,6 +129,14 @@ case "${PSSTYLE}" in
     "checkmarks")
         export PSERR="❌"
         export PSOK="✅"
+        ;;
+    "ballotbox")
+        export PSERR="✗"
+        export PSOK="✓"
+        ;;
+    "boxes")
+        export PSERR="☒"
+        export PSOK="☑"
         ;;
     *)
         export PSERR=""
