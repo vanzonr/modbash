@@ -113,8 +113,8 @@ function gitstatline() {
     # prompts should be quick, so no PATH searches for git.
     # If it isn't in /usr/bin, forget it.
     if ! [[ ${PWD} =~ /remote/ ]]; then
-        echo -n "$(timeout 1 ${modbash[git]} branch --show-current 2>/dev/null;true)"
-        printf '%.*s' "$(timeout 2 ${modbash[git]} ls-files -m 2>/dev/null | ${modbash[wc]} -l)" +
+        echo -n "$(timeout 0.3 ${modbash[git]} branch --show-current 2>/dev/null;true)"
+        printf '%.*s' "$(timeout 0.3 ${modbash[git]} ls-files -m 2>/dev/null | ${modbash[wc]} -l)" +
     else
         echo '?'
     fi

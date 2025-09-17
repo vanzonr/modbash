@@ -5,12 +5,17 @@
 function cd()
 {
     local dir
+    local betterdir
     if [[ "${1:-}" ]]; then
         # dash means previous directory, e.g., pop the directory stack
         if [[ "$1" = - ]]; then
             popd > /dev/null || return
             return
         else
+           # first strip a trailing slash from the first argument 
+           if [[ "$1" != "/" && "${1:${#1}-1:1}" = "/" ]]; then 
+               set "${1:0:${#1}-1}"
+           fi
            # make sure the argument is a directory; if not, but the
            # argument exists (e.g. as a file), use the directory the
            # argument is in (and repeat if needed).
@@ -30,6 +35,17 @@ function cd()
     fi
     # only change directory if there is a change
     if [[ "${dir}" != "${PWD}" ]]; then
-        command pushd "${dir}" > /dev/null || return 1
+        if [ -d "${dir}" ]; then
+            command pushd "${dir}" > /dev/null || return 1
+        else
+            betterdir=$(/usr/bin/find -mindepth 1 -maxdepth 1 -type d -iname "${dir}" 2> /dev/null | /usr/bin/head -n 1) 2>/dev/null
+            if [ -d "${betterdir}" ]; then
+                echo "Warning (cd): Correcting '${dir}' to '${betterdir}'" 1>&2
+                command pushd "${betterdir}" > /dev/null || return 1
+            else            
+                echo "$0: $FUNCNAME: $dir: No such file or directory" 1>&2
+            fi
+            return 1
+        fi
     fi
 }
