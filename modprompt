@@ -102,10 +102,12 @@ function checkerr() {
         done
         local message
         message=$(exit2msg_error_msg "$1")
-        echo -e "\033[31;1m${PSERR}  '${command}': Exit code ${message} \033[0m\012\015"
+        local bar=$(printf %$(tput cols)s|tr \  -)
+        echo -e "\033[31;1m${PSERR}  '${command}': Exit code ${message}\n${bar}\033[0m\012\015"
         echo ""
     else
-        echo -e "\033[32;1m${PSOK}$2\033[0m\012\015"
+        local bar=$(printf %$(($(tput cols)-1-${#PSOK}-${#2}))s|tr \  -)
+        echo -e "\033[32;1m${PSOK}$2 ${bar}\033[0m\012\015"
     fi   
 }
 
@@ -138,6 +140,14 @@ case "${PSSTYLE}" in
         export PSERR="☒"
         export PSOK="☑"
         ;;
+    "words")
+        export PSERR="ERROR:"
+        export PSOK="$(printf %$(( ($(tput cols)-8)/2 ))s|tr \  -) OK"
+        ;;
+    "woorden")
+        export PSERR="FOUTMELDING:"
+        export PSOK="$(printf %$(( ($(tput cols)-9)/2 ))s|tr \  -) OKÉ"
+        ;;
     *)
         export PSERR=""
         export PSOK=""
@@ -150,8 +160,8 @@ if [[ "${PSERR:-}" && "${PSOK:-}" ]]; then
         c*) PSCOL="33" ;;
         d*) PSCOL="00;30;42";;
         f*) PSCOL="00;30;47";;
-        m*) PSCOL="32" ;;
-        n*) PSCOL="34" ;;
+        m*) PSCOL="34" ;;
+        n*) PSCOL="32" ;;
         p*) PSCOL="00;30;44";;
         r*) PSCOL="31" ;;
         s*) PSCOL="35" ;;
