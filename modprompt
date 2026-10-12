@@ -85,6 +85,7 @@ function exit2msg_error_msg() {
 }
 
 function checkerr() {
+    local linechar="─" # box drawing light vertical
     if [ "$1" != "0" ]; then
         # first the actual command that failed
         local commandline
@@ -102,11 +103,12 @@ function checkerr() {
         done
         local message
         message=$(exit2msg_error_msg "$1")
-        local bar=$(printf %$(tput cols)s|tr \  -)
+        local bar=$(printf %$(tput cols)s|sed "s/ /$linechar/g")
         echo -e "\033[31;1m${PSERR}  '${command}': Exit code ${message}\n${bar}\033[0m\012\015"
         echo ""
     else
-        local bar=$(printf %$(($(tput cols)-1-${#PSOK}-${#2}))s|tr \  -)
+        local prefix=${PS1%%\\[*}
+        local bar=$(printf %$(($(tput cols)-1-${#PSOK}-${#2}-${#prefix}))s|sed "s/ /$linechar/g")
         echo -e "\033[32;1m${PSOK}$2 ${bar}\033[0m\012\015"
     fi   
 }
@@ -169,15 +171,32 @@ if [[ "${PSERR:-}" && "${PSOK:-}" ]]; then
 	tri*) PSCOL="31";;
         *)  PSCOL="0" ;;
     esac
-    if [ "${PS1FULL:-}" = 1 ]; then
-        export PS1='\[\033[0;37m\]$(checkerr $?)\[\033[34;0m\]<'${USER}'> \D{%F %T} \033[36m$(echo $(module --terse list 2>&1);true)\033[0m <$(gitstatline)> \[\033[0m\]\n\[\033['${PSCOL}';1m\]$(/usr/bin/hostname -f)\[\033[00m\]:\[\033[01;'${PSCOL}'m\]\w\[\033[0m\]\n\$ '
-    elif [ "${PS1FULL:-}" = -1 ]; then
-        export PS1='\[\033[0;37m\]$(checkerr $?)\[\033[34;0m\]<'${USER}'> \D{%F %T} \033[36m$(echo $(module --terse list 2>&1 | /bin/cut -d/ -f1);true)\033[0m <$(gitstatline)> \[\033[0m\]\n\[\033['${PSCOL}';1m\]$(/usr/bin/hostname -f)\[\033[00m\]:\[\033[01;'${PSCOL}'m\]\w\[\033[0m\]\n\$ '
-    else
-        export PS1='\[\033[0;37m\]$(checkerr $?)\[\033[34;0m\]<'${USER}'> \D{%F %T} \033[36m$(echo $(module --terse list 2>&1 | /bin/cut -d. -f1 | ${modbash[sed]} "/.*\/\..*/d");true)\033[0m <$(gitstatline)> \[\033[0m\]\n\[\033['${PSCOL}';1m\]$(/usr/bin/hostname -f)\[\033[00m\]:\[\033[01;'${PSCOL}'m\]\w\[\033[0m\]\n\$ '
+    sep1=$'\xee\x82\xb2'
+    sep2=$'\xee\x82\xb0'
+    # leading part: the exit-status / error indicator
+    PS1='\[\033[0;37m\]''$(checkerr $?)''\[\033[0m\]'
+    # user segment (black background)
+    PS1+='\[\033[30m\]\[\033[49m\]'"${sep1}"'\[\033[40m\]\[\033[97m\]'${USER}'\[\033[30m\]\[\033[49m\]'"${sep2}"'\[\033[39m\]'
+    # date/time segment (black background)
+    PS1+='\[\033[30m\]\[\033[49m\]'"${sep1}"'\[\033[40m\]\[\033[97m\]''\D{%F %T}''\[\033[30m\]\[\033[49m\]'"${sep2}"'\[\033[39m\]'
+    # loaded-environment-module segment (cyan background)
+    if [ "${PS1FULL:-}" = 1 ]; then # include full version numbers
+        PS1+='\[\033[36m\]\[\033[49m\]'"${sep1}"'\[\033[46m\]\[\033[97m\]''$(echo $(module --terse list 2>&1);true)''\[\033[36m\]\[\033[49m\]'"${sep2}"'\[\033[39m\]'
+    elif [ "${PS1FULL:-}" = -1 ]; then # include no version numbers
+        PS1+='\[\033[36m\]\[\033[49m\]'"${sep1}"'\[\033[46m\]\[\033[97m\]''$(echo $(module --terse list 2>&1 | /bin/cut -d/ -f1);true)''\[\033[36m\]\[\033[49m\]'"${sep2}"'\[\033[39m\]'
+    else # include only major version numbers
+        PS1+='\[\033[36m\]\[\033[49m\]'"${sep1}"'\[\033[46m\]\[\033[97m\]''$(echo $(module --terse list 2>&1 | /bin/cut -d. -f1 | ${modbash[sed]} "/.*\/\..*/d");true)''\[\033[36m\]\[\033[49m\]'"${sep2}"'\[\033[39m\]'
     fi
+    # git status segment (black background)
+    PS1+='\[\033[30m\]\[\033[49m\]'"${sep1}"'\[\033[40m\]\[\033[97m\]$(gitstatline)''\[\033[30m\]\[\033[49m\]'"${sep2}"'\[\033[39m\]'
+    # next-line prompt: hostname and current working directory
+    PS1+='\[\033[0m\]\n\[\033['${PSCOL}';1m\]$(/usr/bin/hostname -f)\[\033[00m\]:\[\033[01;'${PSCOL}'m\]\w\[\033[0m\]\n\$ '
+    unset sep1
+    unset sep2
+    export PS1
 else
     echo "'$PSSTYLE' is not a valid style, use 'thumbs', 'checkmarks', 'ballotbox' or 'boxes'" 2>&1
     export PS1="\h-\$ "
     false
 fi
+
