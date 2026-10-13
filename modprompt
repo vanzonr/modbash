@@ -103,7 +103,7 @@ function checkerr() {
         done
         local message
         message=$(exit2msg_error_msg "$1")
-        local bar=$(printf %$((${modbash[tput]} cols))s|${modbash[sed]} "s/ /$linechar/g")
+        local bar=$(printf %$(${modbash[tput]} cols)s|${modbash[sed]} "s/ /$linechar/g")
         echo -e "\033[31;1m${PSERR}  '${command}': Exit code ${message}\n${bar}\033[0m\012\015"
         echo ""
     else
