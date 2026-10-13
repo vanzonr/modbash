@@ -2,8 +2,8 @@
 
 # read configuration and check them
 mydir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-[ -f $mydir/modbash.conf ] || return 1
-source $mydir/modbash.conf
+[ -f "$mydir"/modbash.conf ] || return 1
+source "$mydir"/modbash.conf
 [ "${modbash[cut]+x}" ] || return 1
 [ "${modbash[git]+x}" ] || return 1
 [ "${modbash[sed]+x}" ] || return 1
@@ -85,7 +85,7 @@ function exit2msg_error_msg() {
 }
 
 function checkerr() {
-    local linechar="─" # box drawing light vertical
+    local linechar="─" # box drawing light horizontal
     if [ "$1" != "0" ]; then
         # first the actual command that failed
         local commandline
@@ -103,12 +103,12 @@ function checkerr() {
         done
         local message
         message=$(exit2msg_error_msg "$1")
-        local bar=$(printf %$(tput cols)s|sed "s/ /$linechar/g")
+        local bar=$(printf %$((${modbash[tput]} cols))s|${modbash[sed]} "s/ /$linechar/g")
         echo -e "\033[31;1m${PSERR}  '${command}': Exit code ${message}\n${bar}\033[0m\012\015"
         echo ""
     else
         local prefix=${PS1%%\\[*}
-        local bar=$(printf %$(($(tput cols)-1-${#PSOK}-${#2}-${#prefix}))s|sed "s/ /$linechar/g")
+        local bar=$(printf %$(($(${modbash[tput]} cols)-1-${#PSOK}-${#2}-${#prefix}))s|${modbash[sed]} "s/ /$linechar/g")
         echo -e "\033[32;1m${PSOK}$2 ${bar}\033[0m\012\015"
     fi   
 }
@@ -144,11 +144,11 @@ case "${PSSTYLE}" in
         ;;
     "words")
         export PSERR="ERROR:"
-        export PSOK="$(printf %$(( ($(tput cols)-8)/2 ))s|tr \  -) OK"
+        export PSOK="$(printf %$(( ($(modbash[tput] cols)-8)/2 ))s|${modbash[tr]} \  -) OK"
         ;;
     "woorden")
         export PSERR="FOUTMELDING:"
-        export PSOK="$(printf %$(( ($(tput cols)-9)/2 ))s|tr \  -) OKÉ"
+        export PSOK="$(printf %$(( ($(modbash[tput] cols)-9)/2 ))s|${modbash[tr]} \  -) OKÉ"
         ;;
     *)
         export PSERR=""
