@@ -104,12 +104,12 @@ function checkerr() {
         local message
         message=$(exit2msg_error_msg "$1")
         local bar=$(printf %$(${modbash[tput]} cols)s|${modbash[sed]} "s/ /$linechar/g")
-        echo -e "\033[31;1m${PSERR}  '${command}': Exit code ${message}\n${bar}\033[0m\012\015"
+        echo -e "\033[30;101m${PSERR}\033[0m\033[31;1m '${command}': Exit code ${message}\n${bar}\033[0m\012\015"
         echo ""
     else
         local prefix=${PS1%%\\[*}
         local bar=$(printf %$(($(${modbash[tput]} cols)-1-${#PSOK}-${#2}-${#prefix}))s|${modbash[sed]} "s/ /$linechar/g")
-        echo -e "\033[32;1m${PSOK}$2 ${bar}\033[0m\012\015"
+        echo -e "\033[30;102m${PSOK}$2\033[0m\033[92m${bar}\033[0m\012\015"
     fi   
 }
 
@@ -135,20 +135,20 @@ case "${PSSTYLE}" in
         export PSOK="✅"
         ;;
     "ballotbox")
-        export PSERR="✗"
-        export PSOK="✓"
+        export PSERR=" ✗  "
+        export PSOK=" ✓ "
         ;;
     "boxes")
-        export PSERR="☒"
-        export PSOK="☑"
+        export PSERR=" ☒  "
+        export PSOK=" ☑ "
         ;;
     "words")
         export PSERR="ERROR:"
-        export PSOK="$(printf %$(( ($(modbash[tput] cols)-8)/2 ))s|${modbash[tr]} \  -) OK"
+        export PSOK="$(printf %$(( ($(${modbash[tput]} cols)-8)/2 ))s|${modbash[tr]} \  -) OK"
         ;;
     "woorden")
         export PSERR="FOUTMELDING:"
-        export PSOK="$(printf %$(( ($(modbash[tput] cols)-9)/2 ))s|${modbash[tr]} \  -) OKÉ"
+        export PSOK="$(printf %$(( ($(${modbash[tput]} cols)-9)/2 ))s|${modbash[tr]} \  -) OKÉ"
         ;;
     *)
         export PSERR=""
