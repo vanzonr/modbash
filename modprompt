@@ -171,8 +171,8 @@ if [[ "${PSERR:-}" && "${PSOK:-}" ]]; then
 	tri*) PSCOL="31";;
         *)  PSCOL="0" ;;
     esac
-    sep1=$'\xee\x82\xb2'
-    sep2=$'\xee\x82\xb0'
+    sep1='◢' #$'\xee\x82\xb2'
+    sep2='◤' #$'\xee\x82\xb0'
     # leading part: the exit-status / error indicator
     PS1='\[\033[0;37m\]''$(checkerr $?)''\[\033[0m\]'
     # user segment (inverted: uses the terminal's default fg/bg swapped via reverse video)
