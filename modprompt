@@ -109,7 +109,7 @@ function checkerr() {
     else
         local prefix=${PS1%%\\[*}
         local bar=$(printf %$(($(${modbash[tput]} cols)-1-${#PSOK}-${#2}-${#prefix}))s|${modbash[sed]} "s/ /$linechar/g")
-        echo -e "\033[30;102m${PSOK}$2\033[0m\033[92m${bar}\033[0m\012\015"
+        echo -e "\033[30;102m${PSOK} $2\033[0m\033[92m${bar}\033[0m\012\015"
     fi   
 }
 
@@ -124,8 +124,8 @@ function gitstatline() {
     fi
 }
 
-PSSTYLE=${1:-ballotbox}
-case "${PSSTYLE}" in
+PSSTYLE=${1:-ballotbox-brace}
+case "${PSSTYLE%-*}" in
     "thumbs")
         export PSERR="👎"
         export PSOK="👍"
@@ -155,6 +155,20 @@ case "${PSSTYLE}" in
         export PSOK=""
         false;;
 esac
+case "${PSSTYLE##*-}" in
+    "brace")
+        sep1='('
+        sep2=')'
+        ;;
+    "slant")
+        sep1='◢'
+        sep2='◤'
+        ;;
+    "vignet"|*)
+        sep1=$'\xee\x82\xb2'
+        sep2=$'\xee\x82\xb0'
+        ;;
+esac
 if [[ "${PSERR:-}" && "${PSOK:-}" ]]; then
     # shellcheck disable=SC2125
     case "${HOSTNAME:-}" in
@@ -164,15 +178,13 @@ if [[ "${PSERR:-}" && "${PSOK:-}" ]]; then
         f*) PSCOL="00;30;47";;
         m*) PSCOL="34" ;;
         n*) PSCOL="32" ;;
-        p*) PSCOL="00;30;44";;
+        p*) PSCOL="00;100;44";;
         r*) PSCOL="31" ;;
         s*) PSCOL="35" ;;
         trig*) PSCOL="32" ;;
 	tri*) PSCOL="31";;
         *)  PSCOL="0" ;;
     esac
-    sep1='◢' #$'\xee\x82\xb2'
-    sep2='◤' #$'\xee\x82\xb0'
     # leading part: the exit-status / error indicator
     PS1='\[\033[0;37m\]''$(checkerr $?)''\[\033[0m\]'
     # user segment (inverted: uses the terminal's default fg/bg swapped via reverse video)
